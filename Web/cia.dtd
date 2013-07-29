@@ -1,0 +1,45 @@
+<!-- XML DTD "cia-export.dtd":
+  (Wolfgang May, may@informatik.uni-freiburg.de, Oct 2000) -->
+
+
+<!ELEMENT cia (continent*, country*)>
+
+<!ELEMENT continent EMPTY>
+<!ATTLIST continent id ID #REQUIRED
+                    name CDATA #REQUIRED>
+
+<!ELEMENT name (#PCDATA)>
+
+<!ELEMENT country (ethnicgroups*, religions*, languages*, borders*, coasts*)>
+
+<!ATTLIST country 
+  id ID #REQUIRED
+  name CDATA #REQUIRED
+  datacode CDATA #IMPLIED
+  continent CDATA #IMPLIED
+  total_area CDATA #IMPLIED
+  population CDATA #IMPLIED
+  population_growth CDATA #IMPLIED
+  infant_mortality CDATA #IMPLIED
+  gdp_agri CDATA #IMPLIED
+  gdp_ind CDATA #IMPLIED
+  gdp_serv CDATA #IMPLIED
+  gdp_total CDATA #IMPLIED 
+  inflation CDATA #IMPLIED
+  indep_date CDATA #IMPLIED
+  government CDATA #IMPLIED
+  capital CDATA #IMPLIED>
+
+<!ELEMENT ethnicgroups (#PCDATA)>
+<!ATTLIST ethnicgroups name CDATA #REQUIRED>
+
+<!ELEMENT religions (#PCDATA)>
+<!ATTLIST religions name CDATA #REQUIRED>
+
+<!ELEMENT languages (#PCDATA)>
+<!ATTLIST languages name CDATA #REQUIRED>
+
+<!ELEMENT borders (#PCDATA)>
+<!ATTLIST borders country IDREF #REQUIRED>
+
+<!ELEMENT coasts (#PCDATA)>

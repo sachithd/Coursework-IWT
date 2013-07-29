@@ -1,0 +1,423 @@
+<html>
+
+<head>
+
+<script type="text/javascript">
+var moz = (typeof document.implementation.createDocument != 'undefined'); //Mozilla Browser
+var ie =  (typeof window.ActiveXObject != 'undefined'); //Internet Explorer
+
+
+//Function to load the XML documents 
+//The following code was taken from the http://www.dcs.bbk.ac.uk/~ptw/teaching/IWT/client/slide15.html
+function loadXML(file) {
+  var xmlDoc;
+
+  if (moz)
+    xmlDoc = document.implementation.createDocument("", "", null);
+  else if (ie)
+    xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+  xmlDoc.async = false;
+  xmlDoc.load(file);
+  return xmlDoc;
+}
+
+
+//This is an optional function to create a table with out using the stylesheet.  This function is not used for the course work
+function task1_WOS() //Create a table without using the stylesheet
+{
+	var xmlDoc = loadXML("cia1.xml"); 
+	var curNode = xmlDoc.documentElement.firstChild;	   
+	var titleElements = xmlDoc.getElementsByTagName("country");
+
+	result = "<table>";	
+	result = result + "<th>" + "Country Name" + "</th>" + "<th>"+ "Capital" + "</th>" + "<th>" + "Total Area" + "</th>" + "<th>" + "Population" + "</th>" + "<th>" + "Inflation" + "</th>"; 
+	for ( i = 0; i < titleElements.length; i++ )
+	{
+	   result = result + "<tr>";
+	   result = result + "<td>" + titleElements.item(i).getAttribute("name") + "</td>";
+	   result = result + "<td>" + titleElements.item(i).getAttribute("capital")  + "</td>";
+	   result = result + "<td>" + titleElements.item(i).getAttribute("total_area") + "</td>";
+	   result = result + "<td>" + titleElements.item(i).getAttribute("population") + "</td>";
+	   result = result + "<td>" + titleElements.item(i).getAttribute("inflation") + "</td>";
+	   result = result + "</tr>";
+	   
+	}
+	result = result + "</table>";
+	document.getElementById('resultArea').innerHTML = result; 
+}
+
+
+//This function is used to uppercase the first character of a string
+//This is used to make the text fields non case sensitive so users can enter values without having to worry about the case.
+
+function initialCap(strText) {
+	strText = strText.split(' '); //Split the words from a space
+	var first,rest;
+	var word = new Array();
+	for (i = 0 ; i < strText.length ; i ++ ) 
+	{
+		strText[i] = strText[i].toLowerCase(); //Convert to all lowercase
+		first = strText[i].substring(0,1).toUpperCase(); //Make the first letter capital
+		rest = strText[i].substring(1); // Rest of the string
+		word[i] = first+rest; //Join the first character and the rest of the characters
+	}
+	strText = word.join(' '); //Join the words from a space
+	return strText;   
+}
+
+
+/*
+Function for Task 1
+This function loads the cia.xml,stylesheet.xsl, applies the style sheet to the xml document and shows the result in the resultArea1
+I have modified the code which was taken from the http://www.dcs.bbk.ac.uk/~ptw/teaching/IWT/client/slide22.html
+*/
+
+function task1() 
+{
+	var xmlDoc = loadXML("cia.xml"); //Loads the XML Files
+	var stylesheet = loadXML("stylesheet.xsl"); //Loads the stylesheet XSL Files
+	if (moz) {
+	  var processor = new XSLTProcessor();
+	  processor.importStylesheet(stylesheet);
+	  var resultFragment = processor.transformToFragment(xmlDoc, document);
+	  
+	  //The following code is used clear the previous result
+	    while (document.getElementById("resultArea1").hasChildNodes()) 
+		{
+			document.getElementById("resultArea1").removeChild(document.getElementById("resultArea1").lastChild); // Removes the previous nodes if exists.
+		}
+	document.getElementById("resultArea1").appendChild(resultFragment);
+	} else if (ie)
+	 document.getElementById('resultArea1').innerHTML = xmlDoc.transformNode(stylesheet);
+
+}
+
+/*
+Function for Task 2
+This function loads the cia.xml,stylesheet.xsl
+Accepts coast value as a parameter
+Changes the value of for-each on the stylesheet programmatically to display the data for the coasts value given
+Applies the stylesheet to the xml document and shows the result in the resultArea2
+I have modified the code which was taken from the http://www.dcs.bbk.ac.uk/~ptw/teaching/IWT/client/slide24.html
+*/
+
+function task2(strCoasts)
+{
+	var xmlDoc = loadXML("cia.xml");
+	var stylesheet = loadXML("stylesheet.xsl");
+	strCoasts = initialCap(strCoasts)
+	if (moz) {
+	  var nsResolver = stylesheet.createNSResolver(
+					   stylesheet.ownerDocument == null ?
+					   stylesheet.documentElement :
+					   stylesheet.ownerDocument.documentElement);
+	  var value = stylesheet.evaluate(
+					   "//xsl:template[@match='/']//xsl:for-each",
+					   stylesheet, nsResolver,
+					   XPathResult.ANY_UNORDERED_NODE_TYPE, null);
+	  value.singleNodeValue.setAttribute("select", "/cia/country[coasts='" + strCoasts + "']");
+	  var proc = new XSLTProcessor();
+	  proc.importStylesheet(stylesheet);
+	  var resultFragment = proc.transformToFragment(xmlDoc, document);
+	  
+	  while (document.getElementById("resultArea2").hasChildNodes()) 
+		{
+			document.getElementById("resultArea2").removeChild(document.getElementById("resultArea2").lastChild);
+		}
+		document.getElementById("resultArea2").appendChild(resultFragment);
+	 
+	} else if (ie) {
+		var value = stylesheet.selectSingleNode(
+				"//xsl:template[@match='/']//xsl:for-each");
+		value.setAttribute("select", "/cia/country[coasts='" + strCoasts + "']");
+		var result2 = xmlDoc.transformNode(stylesheet);
+		 document.getElementById('resultArea2').innerHTML = result2;
+	}
+
+}
+
+/*
+Function for Task 3
+This function loads the cia.xml,stylesheet.xsl
+Changes the value of for-each on the stylesheet programmatically to display the data for the coasts value given
+Applies the stylesheet to the xml document and shows the result in the resultArea3
+I have modified the code which was taken from the http://www.dcs.bbk.ac.uk/~ptw/teaching/IWT/client/slide24.html
+*/
+
+function task3(stroptions, stroperations, strvalue)
+{
+	var xmlDoc = loadXML("cia.xml");
+	var stylesheet = loadXML("stylesheet.xsl");
+	
+	if (moz) {
+	  var nsResolver = stylesheet.createNSResolver(
+					   stylesheet.ownerDocument == null ?
+					   stylesheet.documentElement :
+					   stylesheet.ownerDocument.documentElement);
+	  var value = stylesheet.evaluate(
+					   "//xsl:template[@match='/']//xsl:for-each",
+					   stylesheet, nsResolver,
+					   XPathResult.ANY_UNORDERED_NODE_TYPE, null);
+	  strSearch = "/cia/country[@" + stroptions + stroperations + "'" + strvalue + "']";		
+	  value.singleNodeValue.setAttribute("select", strSearch);
+	  document.print 
+	  var proc = new XSLTProcessor();
+	  proc.importStylesheet(stylesheet);
+	  var resultFragment = proc.transformToFragment(xmlDoc, document);
+	  
+	  while (document.getElementById("resultArea3").hasChildNodes()) 
+		{
+			document.getElementById("resultArea3").removeChild(document.getElementById("resultArea3").lastChild);
+		}
+		document.getElementById("resultArea3").appendChild(resultFragment);
+	 
+	} else if (ie) {
+		var value = stylesheet.selectSingleNode(
+				"//xsl:template[@match='/']//xsl:for-each");
+		strSearch = "/cia/country[@" + stroptions + stroperations + "'" + strvalue + "']";			
+		//alert(strSearch); 
+		value.setAttribute("select", strSearch);
+		var result2 = xmlDoc.transformNode(stylesheet);
+		 document.getElementById('resultArea3').innerHTML = result2;
+	}
+
+}
+
+
+/*
+Function for Task 4
+This function loads the cia.xml,stylesheet.xsl
+Changes the value of for-each on the stylesheet programmatically to display the data for the coasts value given
+Applies the stylesheet to the xml document and shows the result in the resultArea4
+I have modified the code which was taken from the http://www.dcs.bbk.ac.uk/~ptw/teaching/IWT/client/slide24.html
+*/
+
+function task4(stroptionvalue, stroptions, stroperations, strvalue)
+{
+	var xmlDoc = loadXML("cia.xml");
+	var stylesheet = loadXML("stylesheet.xsl");
+	stroptionvalue = initialCap(stroptionvalue);
+	if (moz) {
+	  var nsResolver = stylesheet.createNSResolver(
+					   stylesheet.ownerDocument == null ?
+					   stylesheet.documentElement :
+					   stylesheet.ownerDocument.documentElement);
+	  var value = stylesheet.evaluate(
+					   "//xsl:template[@match='/']//xsl:for-each",
+					   stylesheet, nsResolver,
+					   XPathResult.ANY_UNORDERED_NODE_TYPE, null);
+	  strSearch = "/cia/country[" + stroptions + "[@name = " + "'" + stroptionvalue + "']" + stroperations +  strvalue + "]";		  
+	  //alert(strSearch);
+	  value.singleNodeValue.setAttribute("select", strSearch);
+	  var proc = new XSLTProcessor();
+	  proc.importStylesheet(stylesheet);
+	  var resultFragment = proc.transformToFragment(xmlDoc, document);
+	  
+	  while (document.getElementById("resultArea4").hasChildNodes()) 
+		{
+			document.getElementById("resultArea4").removeChild(document.getElementById("resultArea4").lastChild);
+		}
+		document.getElementById("resultArea4").appendChild(resultFragment);
+	 
+	} else if (ie) {
+		var value = stylesheet.selectSingleNode(
+				"//xsl:template[@match='/']//xsl:for-each");
+		strSearch = "/cia/country[" + stroptions + "[@name = " + "'" + stroptionvalue + "']" + stroperations +  strvalue + "]";		
+		//alert(strSearch);
+		value.setAttribute("select", strSearch);
+		var result2 = xmlDoc.transformNode(stylesheet);
+		 document.getElementById('resultArea4').innerHTML = result2;
+	}
+
+}
+
+
+
+/*
+Validation functions for Task2, Task3 and Task4
+
+These functions will validate the following and display an appropriate message to the user
+1. Empty fields
+2. If user enters a string value where a numeric value is required 
+3. If user enters a numeric value where a string value is required 
+
+Returns 'False' if the fields are invalide and returns 'True' if they are valid.
+
+*/
+
+
+function validationTask2() {
+
+        var inpVal = document.frmtask2.txtcoasts.value;
+        if (inpVal == "" ||inpVal == null)
+		{
+			var msg = "Please enter a valid coasts value";
+			alert(msg);
+			document.frmtask2.txtcoasts.focus();
+			document.frmtask2.txtcoasts.select();	
+			return false;
+		}
+		if (!isNaN(parseInt(inpVal))) 
+		{
+            var msg = "Please enter a valid coasts value";
+			alert(msg);
+			document.frmtask2.txtcoasts.focus();
+			document.frmtask2.txtcoasts.select();
+			return false;
+        }
+		
+		return true;
+  
+}
+
+function validationTask3() {
+
+        var inpVal = document.frmtask3.txtvalue3.value;
+        if (inpVal == "" ||inpVal == null)
+		{
+			var msg = "This field cannot be empty!";
+			alert(msg);
+			document.frmtask3.txtvalue3.focus();
+			document.frmtask3.txtvalue3.select();	
+			return false;
+		}
+		if (isNaN(parseInt(inpVal))) 
+		{
+            var msg = "Please enter a numeric value";
+			alert(msg);
+			document.frmtask3.txtvalue3.focus();
+			document.frmtask3.txtvalue3.select();
+			return false;
+        }
+		
+		return true;
+  
+}
+
+function validationTask4() {
+
+        var inpVal1 = document.frmtask4.txtoptions.value;
+		var inpVal2 = document.frmtask4.txtvalue4.value;
+        if (inpVal2 == "" ||inpVal2 == null)
+		{
+			var msg = "This field cannot be empty!";
+			alert(msg);
+			document.frmtask4.txtvalue4.focus();
+			document.frmtask4.txtvalue4.select();	
+			return false;
+		}
+		if (isNaN(parseInt(inpVal2))) 
+		{
+            var msg = "Please enter a numeric value";
+			alert(msg);
+			document.frmtask4.txtvalue4.focus();
+			document.frmtask4.txtvalue4.select();
+			return false;
+        }
+		if (inpVal1 == "" ||inpVal1 == null)
+		{
+			var msg = "This field cannot be empty!";
+			alert(msg);
+			document.frmtask4.txtoptions.focus();
+			document.frmtask4.txtoptions.select();	
+			return false;
+		}
+		if (!isNaN(parseInt(inpVal1))) 
+		{
+			var n = document.frmtask4.options4.selectedIndex;
+            var msg = "Please enter a valid text for " + document.frmtask4.options4[n].text;
+			alert(msg);
+			document.frmtask4.txtoptions.focus();
+			document.frmtask4.txtoptions.select();
+			return false;
+        }
+		
+		return true;
+  
+}
+
+
+
+
+// This function is to call the validation function first and then call the appropriate function for the tasks after the basic validation is done
+function funcCaller(funcValidation, funcTask, params) 
+{
+	var blnresult;
+	blnresult = funcValidation(); //Call the validation function
+	
+	//Call the task if the validation result is true
+	if (blnresult)
+	{
+		funcTask.apply(null,params);
+	}	
+
+}
+
+
+</script>
+
+
+</head>
+<body bgcolor="#3399FF">
+<font face="Tahoma" size="2">
+	<h3>Coursework for Internet and Web Technologies module (2010/11)</h3>
+	
+	<form name="frmtask1">
+		<p><h5>1. View the information specified above for all countries</h5></p>
+		<input type="button" value="View All" onclick="task1()" />
+	</form>
+	<div id="resultArea1"></div>
+
+	<form name="frmtask2">
+		<p><h5>2. Enter a value and view information about all the countires which have a coast with that value</h5><font color="#99FF00">(Eg: 'North Sea') without quotes</font></p>
+		<label for="txtcoasts">Coasts Name : </label>
+		<input type="text" id="txtcoasts" onchange="validationTask2()"/>
+		<input type="button" value="Search" onclick="funcCaller(validationTask2,task2,[txtcoasts.value])" />
+	</form>
+	<div id="resultArea2"></div>
+
+	<form name="frmtask3">
+		<p><h5>3. Enter a value and an operator (<, = or >) and view information about all the countries which have a population, area or inflation rate which satifies the condition given by the operator and value entered</h5><font color="#99FF00">(Eg: 'Population' '<' '10000') without quotes</font></p>
+		<select name="options3">
+			<option value="population">Population</option>
+			<option value="total_area">Area</option>
+			<option value="inflation">Inflation Rate</option>
+		</select>
+		<select name="operator3">
+			<option value="<"><</option>
+			<option value="=">=</option>
+			<option value=">">></option>
+		</select>
+		<input type="text" id="txtvalue3" />
+		<input type="button" value="Search" onclick="funcCaller(validationTask3,task3,[options3.value,operator3.value,txtvalue3.value])" />
+	</form>
+	<div id="resultArea3"></div>
+
+	<form name="frmtask4">
+		<p><h5>4. Enter a value, an operator (<, = or >) and an ethnic group, religion or language and view information about all the countries which have a percentage of the ethnic group, religion or language, respectively, which satifies the condition given by the operator and value entered</h5><font color="#99FF00">(Eg: 'Religion' = 'Buddhist' '=' '69' %) without quotes</font></p>
+			<select name="options4">
+			<option value="ethnicgroups">Ethnic Group</option>
+			<option value="religions">Religion</option>
+			<option value="languages">Language</option>
+		</select>
+		<label for="txtoptions"> = </label>
+		<input type="text" id="txtoptions" />
+		<select name="operator4">
+			<option value="<"><</option>
+			<option value="=">=</option>
+			<option value=">">></option>
+		</select>
+		<input type="text" id="txtvalue4" />
+		<label for="txtvalue4"> % </label>
+		<input type="button" value="Search" onclick="funcCaller(validationTask4,task4,[txtoptions.value,options4.value,operator4.value,txtvalue4.value])" />
+	</form>
+	<div id="resultArea4"></div>
+	<!-- I confirm that this coursework submission is entirely my own work, except where explicitly stated otherwise -->
+	<!-- I have refered some of the coding from the lecture notes and the links are stated as a comment just before the code --> 
+	</br>
+	<div align="right">
+	<h5>M G S Dassanayake (12712980)</h5></div>
+</body>
+
+
+</html> 
